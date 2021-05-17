@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    {% include 'googlefont.html' %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'quiz.css'%}">
+    <title>Quiz</title>
+    <script>
+        $(document).ready(function () {
+            $("#card").css({ "border-color": "white", "border-width": "2px" });
+
+            if ("{{result}}" != "") {
+
+                if ("{{request.session.correct}}" == "True") {
+                    $("#card").css({ "border-color": "#05c9ff", "border-width": "2px" });
+                    $("#score").css('color', '#05c9ff');
+                    $("#result-string").css('color', '#000000');
+
+                } else {
+                    $("#result-string").css('color', '#ff7171');
+
+                }
+                setTimeout(function () {
+                    $("#card").css({ "border-color": "white", "border-width": "2px" });
+                    $("#score").css('color', 'white');
+                    $("#result-string").css('color', 'black');
+
+                }, 800);
+
+            }
+        });
+
+    </script>
+</head>
+
+<body>
+    <!-- navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/success">
+            <i class="bi bi-chat-square-quote"></i>
+            Quotable
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
+            aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="/success">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/profile/{{user.id}}">My Quotes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/activity">Activity</a>
+                </li>
+            </ul>
+            <span class="navbar-text">
+                <a class="navbar-text mr-4" href="/settings/{{user.id}}" role="button"> {{ user.first_name }}
+                    {{user.last_name}}</a>
+                <a class="btn btn-outline-secondary" href="/logout" role="button">Logout</a>
+            </span>
+        </div>
+    </nav>
+    <!-- navbar -->
+    <div id="card_container" class="container pt-5 text-dark text-center">
+        {% if random_quote %}
+        <div class="card bg-light" id="card">
+            <h4 class="card-header bg-dark text-capitalize text-light">
+                <strong id="score">Score: {{request.session.score}}</strong>
+            </h4>
+            <div class="card-body">
+                {% if result != "" %}
+                <div id="result">
+                    {% if request.session.correct %}
+                    <blockquote class="blockquote" id="result-string">
+                        <h4 class="mb-0 mt-2">{{result}}</h4>
+                    </blockquote>
+                    
+                    {% else %}
+                    <blockquote class="blockquote" id="result-string">
+                        <h4 class="mb-0 mt-2">{{result}}</h4>
+                    </blockquote>
+                    {% endif %}
+                    <div id="result-image">
+                        <img src="{{request.session.image}}" class="center">
+                    </div>
+                </div>
+                <a class="btn btn-primary" href="/quiz">Next Quote</a>
+                {% else %}
+                <blockquote class="blockquote" id="quote">
+                    <p class="mb-4 mt-2">"{{random_quote.quote}}"</p>
+                </blockquote>
+                <div class="text-center">
+                    <form id="form" action="/submit_answer/{{random_quote.id}}" method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input class="col-sm-4 custom-select custom-select-md" list="movies" name="chosen_movie_id"
+                                id="d-list" placeholder="Choose a movie">
+                            <datalist id="movies">
+                                {% for movie in movies %}
+                                {% if movie.movie_quotes.count > 0 %}
+                                <option value="{{movie.title}}" data-value="{{movie.id}}">{{movie.title}}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                        <div class="form-check mt-4 mb-4">
+                            <input class="form-check-input" name="favorite" type="checkbox" value="favorite"
+                                id="flexCheckChecked" unchecked>
+                            <label class="form-check-label" for="flexCheckChecked">
+                                Add to favorites
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="submit">select movie</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div id="card_container"
+        class="container  d-flex justify-content-center align-items-center p-0 text-light text-center">
+        <div class="card bg-dark " id="card">
+            <h4 class="card-header bg-light text-capitalize text-dark">
+                <strong id="score">Score: {{request.session.score}}</strong>
+            </h4>
+            <div class="card-body">
+                <h5>{{result}} All quotes have been matched! Thanks for playing</h5>
+                <div id="result-image">
+                    <img src="{{request.session.image}}" class="center">
+                </div>
+                <a href="/success" class="btn btn-primary">Back To Home</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
